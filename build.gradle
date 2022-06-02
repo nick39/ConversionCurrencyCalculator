@@ -1,0 +1,61 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.0'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'war'
+    id 'org.openapi.generator' version '6.0.0'
+}
+
+group = 'com.yurtimcode'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '8'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'junit:junit:4.13.1'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.h2database:h2'
+    annotationProcessor 'org.projectlombok:lombok'
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+    implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
+    implementation group: 'io.swagger', name: 'swagger-annotations', version: '1.6.2'
+    implementation group: 'io.swagger', name: 'swagger-models', version: '1.6.2'
+    implementation group: 'org.openapitools', name: 'jackson-databind-nullable', version: '0.2.1'
+    implementation ("org.openapitools:openapi-generator-gradle-plugin:6.0.0"){
+        exclude group: 'org.slf4j'
+    }
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$rootDir/src/main/resources/conversion-calculator-api.yaml"
+    outputDir = "$buildDir/generated-sources/openapi"
+    apiPackage = "com.yurtimcode.conversion_calculator.api"
+    modelPackage = "com.yurtimcode.conversion_calculator.models"
+    configOptions = [
+            dateLibrary: "java8",
+            interfaceOnly: "true",
+            delegatePattern: "true",
+            additionalModelTypeAnnotations: "@lombok.AllArgsConstructor"
+    ]
+}
+
+apply plugin: 'org.openapi.generator'
+compileJava.dependsOn tasks.openApiGenerate
+
+test {
+    useJUnitPlatform()
+}

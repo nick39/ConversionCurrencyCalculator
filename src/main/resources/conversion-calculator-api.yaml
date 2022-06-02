@@ -1,0 +1,141 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: "Currency Conversion Calculator"
+servers:
+  - url: http://localhost:8080/
+paths:
+  /convert_from:
+    get:
+      summary: How much money of specific currency you can get by available amount
+      operationId: convertFrom
+      parameters:
+        - name: currency_from
+          in: query
+          description: currency code - source of conversion
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            maxLength: 3
+            minLength: 3
+        - name: currency_to
+          in: query
+          description: currency code - goal of conversion
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            maxLength: 3
+            minLength: 3
+        - name: amount_from
+          in: query
+          description: Amount for conversion
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Result of conversion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConvertResult"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /convert_to:
+    get:
+      summary: How much money of available currency need for buying certain amount of specific currency
+      operationId: convertTo
+      tags:
+        - to
+      parameters:
+        - name: currency_from
+          in: query
+          description: currency code - source of conversion
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            maxLength: 3
+            minLength: 3
+        - name: currency_to
+          in: query
+          description: currency code - goal of conversion
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            maxLength: 3
+            minLength: 3
+        - name: amount_to
+          in: query
+          description: Needed amount of conversion
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Result of conversion
+          headers:
+            x-next:
+              description: A link to the next page of responses
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConvertResult"
+        '400':
+          description: Bad request. User ID must be an integer and larger than 0.
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    ConvertResult:
+      description: Conversion Result with rates
+      type: object
+      properties:
+        conversionRate:
+          type: object
+          properties:
+            code:
+              type: string
+              maxLength: 6
+            rate:
+              type: number
+            date:
+              type: string
+              format: date
+        amount_from:
+          type: number
+        amount_to:
+          type: number
+        margin:
+          type: object
+          properties:
+            amount:
+              type: number
+            currency:
+              type: string
+            percent:
+              type: number
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

@@ -1,0 +1,1 @@
+INSERT INTO rate (code, rate, date) VALUES ('EURGBP', 0.769, now()), ('GBPEUR', 1.2375, now());
