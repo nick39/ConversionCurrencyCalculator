@@ -16,6 +16,9 @@ public class Rate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * CurrencyInputCode + CurrencyOutputCode(e.g. EURGBP)
+     */
     @Column(name = "code", length = 6)
     private String code;
 
