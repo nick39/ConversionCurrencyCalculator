@@ -55,6 +55,7 @@ openApiGenerate {
 
 apply plugin: 'org.openapi.generator'
 compileJava.dependsOn tasks.openApiGenerate
+sourceSets.main.java.srcDir "${buildDir}/generated-sources/openapi/src/main/java"
 
 test {
     useJUnitPlatform()
