@@ -1,16 +1,13 @@
-package com.yurtimcode.conversion_calculator.service;
+package com.yurtimcode.conversion_calculator.service.impl;
 
 import com.yurtimcode.conversion_calculator.entity.Rate;
-import com.yurtimcode.conversion_calculator.exception.RateNotFoundException;
 import com.yurtimcode.conversion_calculator.repository.RateRepository;
-import org.springframework.http.HttpStatus;
+import com.yurtimcode.conversion_calculator.service.CurrencyService;
+import com.yurtimcode.conversion_calculator.service.RateService;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
-import java.util.Optional;
-
 @Service
-public class RateServiceImpl implements RateService{
+public class RateServiceImpl implements RateService {
 
     private final RateRepository rateRepository;
     private final CurrencyService currencyService;

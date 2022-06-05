@@ -1,4 +1,4 @@
-package com.yurtimcode.conversion_calculator.service;
+package com.yurtimcode.conversion_calculator.service.impl;
 
 import com.yurtimcode.conversion_calculator.entity.Rate;
 import com.yurtimcode.conversion_calculator.exception.CurrencyNotFoundException;
@@ -6,17 +6,20 @@ import com.yurtimcode.conversion_calculator.exception.RateNotFoundException;
 import com.yurtimcode.conversion_calculator.models.ConvertResult;
 import com.yurtimcode.conversion_calculator.models.ConvertResultConversionRate;
 import com.yurtimcode.conversion_calculator.models.ConvertResultMargin;
+import com.yurtimcode.conversion_calculator.service.ConversionService;
+import com.yurtimcode.conversion_calculator.service.CurrencyService;
+import com.yurtimcode.conversion_calculator.service.RateService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Optional;
+import java.time.OffsetDateTime;
 
 @Service
 public class ConversionServiceImpl implements ConversionService {
 
     @Value("${application.margin}")
-    private String margin;
+    private BigDecimal margin;
 
     private final RateService rateService;
     private final CurrencyService currencyService;
@@ -38,15 +41,13 @@ public class ConversionServiceImpl implements ConversionService {
         if (rate == null)
             throw new RateNotFoundException("Rate for pair of currencies " + currencyFromCode + currencyToCode + " doesn't exist");
 
-        BigDecimal marginBD = new BigDecimal(margin);
-        BigDecimal convertedAmount = amountForSelling.multiply(rate.getRate()).setScale(2, BigDecimal.ROUND_HALF_EVEN);
-        BigDecimal marginAmount = convertedAmount.multiply(marginBD.setScale(2, BigDecimal.ROUND_HALF_EVEN));
-        BigDecimal outputAmount = convertedAmount.subtract(marginAmount);
+        BigDecimal marginAmount = amountForSelling.multiply(margin).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+        ConvertResultMargin convertResultMargin = new ConvertResultMargin(marginAmount, currencyFromCode, margin);
 
+        BigDecimal outputAmount = ((amountForSelling.subtract(marginAmount)).multiply(rate.getRate())).setScale(2, BigDecimal.ROUND_HALF_EVEN);
         ConvertResultConversionRate conversionRate = new ConvertResultConversionRate(rate.getCode(), rate.getRate(), rate.getDate());
-        ConvertResultMargin convertResultMargin = new ConvertResultMargin(marginAmount, currencyToCode, marginBD);
 
-        return new ConvertResult(conversionRate, amountForSelling, outputAmount, convertResultMargin);
+        return new ConvertResult(conversionRate, convertResultMargin, amountForSelling, currencyFromCode, outputAmount, currencyToCode, OffsetDateTime.now());
     }
 
     @Override
@@ -56,17 +57,16 @@ public class ConversionServiceImpl implements ConversionService {
         if(!currencyService.isAvailable(currencyToCode))
             throw new CurrencyNotFoundException("Currency with code " + currencyToCode + " doesn't exist");
 
-        Rate rate = rateService.getByCurrencyCodes(currencyFromCode, currencyToCode);
+        Rate rate = rateService.getByCurrencyCodes(currencyToCode, currencyFromCode);
         if (rate == null)
             throw new RateNotFoundException("Rate for pair of currencies " + currencyFromCode + currencyToCode + " doesn't exist");
 
-        BigDecimal marginBD = new BigDecimal(margin);
-        BigDecimal marginAmount = amountForBuying.multiply(marginBD.setScale(2, BigDecimal.ROUND_HALF_EVEN));
-        BigDecimal inputAmount = (marginAmount.add(amountForBuying)).multiply(rate.getRate()).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+        BigDecimal marginAmount = amountForBuying.multiply(margin).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+        ConvertResultMargin convertResultMargin = new ConvertResultMargin(marginAmount, currencyToCode, margin);
 
-        ConvertResultConversionRate conversionRate = new ConvertResultConversionRate(currencyToCode, rate.getRate(), rate.getDate());
-        ConvertResultMargin convertResultMargin = new ConvertResultMargin(marginAmount, currencyToCode, marginBD);
+        BigDecimal inputAmount = ((marginAmount.add(amountForBuying)).multiply(rate.getRate())).setScale(2, BigDecimal.ROUND_HALF_EVEN);
+        ConvertResultConversionRate conversionRate = new ConvertResultConversionRate(rate.getCode(), rate.getRate(), rate.getDate());
 
-        return new ConvertResult(conversionRate, inputAmount, amountForBuying, convertResultMargin);
+        return new ConvertResult(conversionRate, convertResultMargin, inputAmount, currencyFromCode, amountForBuying, currencyToCode, OffsetDateTime.now());
     }
 }
