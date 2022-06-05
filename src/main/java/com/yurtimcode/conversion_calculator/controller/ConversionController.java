@@ -39,34 +39,13 @@ public class ConversionController implements ConvertFromApi, ConvertToApi {
         return new ResponseEntity(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = IllegalArgumentException.class)
-    public ResponseEntity handleIllegalArgumentException(IllegalArgumentException exception) {
-        return new ResponseEntity(exception.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
     @Override
     public ResponseEntity<ConvertResult> convertFrom(String currencyFrom,String currencyTo, BigDecimal amountFrom) {
-        if (currencyFrom.isEmpty() || currencyTo.isEmpty()) {
-            throw new IllegalArgumentException("{\"error\":\"At least one parameter is empty\"}");
-        }
-        if (amountFrom.signum() <= 0) {
-            throw new IllegalArgumentException("{\"error\":\"Amount has to be more than 0\"}");
-        }
-        ConvertResult result = conversionService.convertFrom(currencyFrom, currencyTo, amountFrom);
-        return ResponseEntity.accepted().body(result);
+        return ResponseEntity.accepted().body(conversionService.convertFrom(currencyFrom, currencyTo, amountFrom));
     }
 
     @Override
     public ResponseEntity<ConvertResult> convertTo(String currencyFrom, String currencyTo, BigDecimal amountTo) {
-
-        if(currencyFrom.isEmpty() || currencyTo.isEmpty()) {
-            throw new IllegalArgumentException("{\"error\":\"At least one parameter is empty\"}");
-        }
-
-        if (amountTo.signum() <= 0) {
-            throw new IllegalArgumentException("{\"error\":\"Amount has to be more than 0\"}");
-        }
-        ConvertResult result = conversionService.convertTo(currencyFrom, currencyTo, amountTo);
-        return ResponseEntity.accepted().body(result);
+        return ResponseEntity.accepted().body(conversionService.convertTo(currencyFrom, currencyTo, amountTo));
     }
 }
